@@ -82,7 +82,7 @@ rfm.groupby("segment").agg({"Recency": "mean",
 rfm.index = rfm.index.astype(int)
 
 new_customers_id = rfm[rfm["segment"] == "new_customers"].index
-champions_id = rfm[rfm["segment"] == "new_customers"].index
+champions_id = rfm[rfm["segment"] == "champions"].index
 
 new_df = pd.DataFrame()
 new_df["new_customers_id"] = new_customers_id
