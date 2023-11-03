@@ -143,22 +143,33 @@ print(rfm.pivot_table(index="segments", values=["recency", "frequency", "monetar
 # ortalama 250 TL üzeri ve "sadece kadın" kategorisinden alışveriş yapan kişiler özel olarak iletişim kuralacak müşteriler.
 # Bu müşterilerin id numaralarını csv dosyasına yeni_marka_hedef_müşteri_id.cvs olarak kaydediniz.
 rfm.reset_index(inplace=True)
-rfm["interested_in_categories_12"] = df["interested_in_categories_12"]
-yeni_marka_hedef_musteri = rfm[((rfm["segments"] == "champions") | (rfm["segments"] == "loyal_customers")) &
-                               ((rfm["monetary"] > 250) & (df["interested_in_categories_12"].str.contains("KADIN")) & (
-                                   ~rfm["interested_in_categories_12"].str.contains(",")))]
+final_df = rfm.merge(df[["master_id", "interested_in_categories_12"]], on='master_id', how="left")
+print(final_df[((final_df["segments"] == "champions") | (final_df["segments"] == "loyal_customers")) &
+         (final_df["interested_in_categories_12"].str.contains("KADIN")) & (~final_df["interested_in_categories_12"].str.contains(",")) &
+               (final_df["monetary"] > 250)])
 
-print(yeni_marka_hedef_musteri)
-print(yeni_marka_hedef_musteri["master_id"].to_csv("yeni_marka_hedef_müşteri_id.csv"))
+customer_id = final_df[((final_df["segments"] == "champions") | (final_df["segments"] == "loyal_customers")) &
+         (final_df["interested_in_categories_12"].str.contains("KADIN")) & (~final_df["interested_in_categories_12"].str.contains(",")) &
+               (final_df["monetary"] > 250)].index
+
+index = pd.DataFrame()
+index["customer_id"] = customer_id
+index.to_csv("yeni_marka_hedef_müşteri_id.cvs")
 
 # b. Erkek ve Çoçuk ürünlerinde %40'a yakın indirim planlanmaktadır. Bu indirimle ilgili kategorilerle ilgilenen geçmişte iyi müşteri olan ama uzun süredir
 # alışveriş yapmayan kaybedilmemesi gereken müşteriler, uykuda olanlar ve yeni gelen müşteriler özel olarak hedef alınmak isteniliyor.
 # Uygun profildeki müşterilerin id'lerini csv dosyasına indirim_hedef_müşteri_ids.csv olarak kaydediniz.
 
-customer_id3 = rfm[((rfm["segments"].isin(["cant_loose", "about_to_sleep", "new_customers"])) &
-                    (rfm["interested_in_categories_12"].str.contains("ERKEK|COCUK")) &
-                    (rfm["interested_in_categories_12"].str.len() <= 10))]
-print(customer_id3)
+print(final_df[((final_df["segments"].isin(["cant_loose", "about_to_sleep", "new_customers"])) &
+                    (final_df["interested_in_categories_12"].str.contains("ERKEK|COCUK")) &
+                    (~final_df["interested_in_categories_12"].str.contains(",")))])
+
+customer_id2 = final_df[((final_df["segments"].isin(["cant_loose", "about_to_sleep", "new_customers"])) &
+                    (final_df["interested_in_categories_12"].str.contains("ERKEK|COCUK")) &
+                    (~final_df["interested_in_categories_12"].str.contains(",")))].index
+
+index["customer_id2"] = customer_id3
+index.to_csv("indirim_hedef_müşteri_ids.csv")
 
 # Customer Lifetime Value:
 # CLTV = (Customer Value / Churn Rate) * Profit Margin
